@@ -97,7 +97,7 @@ Let's take a moment to understand this through a concrete example:\\
 Recall that the Discrete Log (DL) assumption for a group $\G$ is that it is hard to compute $x$ given $g^x$ as input, where $g$ is the generator for $\G$. A related assumption, known as the One More Discrete Log (OMDL) assumption for $\G$, states that if a program is given some (positive) number, $k$, of random group elements, $g^{x_1},g^{x_2},\ldots, g^{x_k}$, and it is able to ask for and receive discrete logarithms for any $k-1$ group elements, then computing all of the values $x_1, x_2,\ldots, x_k$ is still hard. We can use reduction to see that if the OMDL assumption holds for a group, then the DL assumption holds. Specifically, this proof by reduction requires us to show that if the DL problem is easy to solve, then it will be easy to solve the OMDL problem. But of course, if we can compute discrete logarithms in a group with non-negligible probability (i.e., DL problem is easy), then we can trivially solve the OMDL problem by asking for the discrete logs for $g^{x_1},\ldots, g^{x_{k-1}}$ and then using our DL-solver to directly compute the $k$th discrete log with non-negligible probability.
 
 \begin{exercise}\label{ex:nonce-reuse}
-Let $\G$ be an abelian group with an element, $g\in\G$, of order $n$. A Schnorr signature of a message, $m$, by a private key, $x$, is a pair $(s, R)$ such that $s = k + H(R, m)\cdot x\in \Z/n\Z$ and $R = g^k\in\G$ is the nonce ($k$ is a random element of $\Z/n\Z$ generated for this signature). Intuitively, this works because $s$ commits to the message using a hash, uses the private key, but it does not reveal the private key because of the random value $k$. A Schnorr signature can be verified by checking the equation $g^s == R\cdot X^{H(R, m)}$, where $X = g^x$ is the signer's public key.\\
+Let $\G$ be an abelian group with an element, $g\in\G$, of prime order $n$. A Schnorr signature of a message, $m$, by a private key, $x\in\Z/n\Z$, is a pair $(s, R)$ such that $s = k + H(R, m)\cdot x\in \Z/n\Z$ and $R = g^k\in\G$ is the nonce ($k$ is a random element of $\Z/n\Z$ generated for this signature). Intuitively, this works because $s$ commits to the message using a hash, uses the private key, but it does not reveal the private key because of the random value $k$. A Schnorr signature can be verified by checking the equation $g^s == R\cdot X^{H(R, m)}$, where $X = g^x$ is the signer's public key.\\
 Use proof by reduction to show that if we assume that the discrete log problem is hard in $\G$, then we can conclude that it is hard to forge two Schnorr signatures for the same nonce and key, that is, if we are given a public key $X = g^x$ and nonce $R$ (without being given $x$ or $k$) it is hard to compute two different messages $m_1$ and $m_2$ and values $s_1$ and $s_2$ such that $(s_1, R)$ and $(s_2, R)$ are valid signatures for $X$ of $m_1$ and $m_2$, respectively.\\
 This will later be an important part of the proof of the stronger statement that if the discrete log problem is hard, then Schnorr signatures are unforgable in a much stronger sense.
 \end{exercise}
@@ -140,8 +140,8 @@ In cryptographic assumption definitions, we make these kinds of statements preci
             b \sample \{0,1\}\\
             X \gets g^x\\
             Y \gets g^y\\
-            Z_1 \gets g^z\\
-            Z_2 \gets g^{x\cdot y}\\
+            Z_0 \gets g^z\\
+            Z_1 \gets g^{x\cdot y}\\
             \hat{b} \gets \adv(\lambda, X, Y, Z_b)\\
             \pcreturn \hat{b} = b
           }
@@ -158,11 +158,11 @@ For each of these games, we define the advantage an adversary program, $\adv$, h
 \advantage{DDH}{\adv} &:= \pr{\game{\algo{DDH}}{} = \text{true}} - \frac{1}{2},
 \end{align*} where $\pr{\cdot}$ is the probability function, which we will discuss in more detail later. Note that because an adversary that just picks its value randomly wins the $\game{\algo{DDH}}{}$ game half of the time, we define the advantage an adversary has to be how much better than probability $\frac{1}{2}$ it can do. Finally, we can make our assumptions formal and complete by saying that the DL assumption holds for a family of groups, $\G(\lambda)$, if for all programs, $\adv$, the value $\advantage{DL}{\adv}$ is negligible. Similarly, we say that the CDH or DDH assumptions hold if $\advantage{CDH}{\adv}$ or $\advantage{DDH}{\adv}$ are negligible for all programs, $\adv$. We will formalize what it means for a function of $\lambda$ to be negligible next week, but for now just think of it as a value that becomes small exponentially fast as $\lambda$ increases.
 
-\begin{exercise} Use proof by reduction and the precise definitions above to show that
+\begin{exercise} Use proof by reduction and the definitions above to informally show that
 \begin{enumerate}[(a)]
 \item If the DDH assumption holds, then the CDH assumption holds.
 \item If The CDH assumption holds, then the DL assumption holds.\\
-In order to solve this part, you will need two facts that we will prove later:
+In order to solve this part, you may use two facts that we will prove later (though it is possible to do this exercise without):
 \begin{enumerate}[(1)]
 \item If you have two independent events $A$ and $B$, then $\pr{A\text{ and }B} = \pr{A}\cdot\pr{B}$.
 \item If $F(\lambda)$ is not negligible, then $F(\lambda)^2$ is also not negligible.
@@ -231,7 +231,7 @@ Explain why the following is true using the definition of probability: $$\pr{\bi
 In case this notation is not familiar to you, $\bigcup_{i=1}^n E_i = E_1\cup E_2\cup\cdots\cup E_n$ refers to the union of all of the sets $E_1$ through $E_n$, and $\sum_{i=1}^n\pr{E_i} = \pr{E_1} + \pr{E_2} + \cdots + \pr{E_n}$ refers to the sum of all of the probabilities $\pr{E_1}$ through $\pr{E_n}$. You can think of both of these as essentially for loops.
 \end{exercise}
 
-An important notion in probability, that we have already used, is when two events are \emph{independent}. Intuitively this means that two events are uncorrelated. In order to capture this notion precisely, we first introduce the notion of \emph{conditional probability}: $$\pr{E_1\mid E_2} := \frac{\pr{E_1\cap E_2}}{\pr{E_2}}.$$ This formula is read ``The probability of $E_1$ occurs \emph{given} that $E_2$ occurs is equal to the probability that $E_1$ and $E_2$ both occur divided by the probability that $E_2$ occurs.'' This makes sense in our definition of probability because the information that $E_2$ occurs essentially is the same as replacing our original set of possible outcomes, $\Omega$, with $E_2$ instead, and re-interpreting the event $E_1$ as the set of states in $E_1$ that are also in our new set of possible outcomes, $E_2$, throwing away the rest of the states.\\
+An important notion in probability, that we have already used, is when two events are \emph{independent}. Intuitively this means that two events are uncorrelated. In order to capture this notion precisely, we first introduce the notion of \emph{conditional probability}: $$\pr{E_1\mid E_2} := \frac{\pr{E_1\cap E_2}}{\pr{E_2}}.$$ This formula is read ``The probability of $E_1$ occurs \emph{given} that $E_2$ occurs is equal to the probability that $E_1$ and $E_2$ both occur divided by the probability that $E_2$ occurs.'' This makes sense in our definition of probability because the information that $E_2$ occurs essentially is the same as replacing our original set of possible outcomes, $\Omega$, with $E_2$ instead, and re-interpreting the event $E_1$ as the set of states in $E_1$ that are also in our new set of possible outcomes, $E_2$, throwing away the rest of the states. Note that this definition requires that $\pr{E_2}\neq 0$ to avoid division by $0$, but this is of no consequence since there isn't much use in conditionalizing on a probability $0$ event.\\
 
 An important and immediate result is that $\pr{E_1\cap E_2} = \pr{E_1\mid E_2}\cdot \pr{E_2}$. This observation allows us to compute probabilities by breaking a state space up into cases. Suppose that the state space has a partition into two pieces: $\Omega = A\cup B$ and there is no intersection between these pieces ($A\cap B = \emptyset$). Then we can compute the probability of any event, $E$, by splitting into the $A$ and $B$ cases as follows,
 \begin{align*}

@@ -46,14 +46,14 @@
 
 Welcome! As you begin working through readings and exercises, if you find yourself uncomfortable with the notation and language around sets and functions, consider coming back to the following optional reading.
 
-\begin{reading}[Background]\label{sets-background}
+\begin{reading}[Background (Optional)]\label{sets-background}
 As needed, read about sets, set notations, functions and  function notations in:\\
 Herstein - Abstract Algebra - pages 3-13.
 \end{reading}
 
 Our goal this week is to introduce some of the basic constructions from public key cryptography that will be useful moving forward. In particular, we will focus on encryption to motivate our learning of some mathematical background, and then we will also discuss digital signatures in our synchronous time together.\\
 
-As will be discussed in Reading \ref{ciphers}, an asymmetric cipher consists of a public key function, $G: \Kpriv\to\Kpub$, an encryption function, $E: \M\times\Kpub\to\C$, and a decryption function, $D: \C\times\Kpriv\to\M$, such that $D(E(m, G(k)), k) = m$ (that is, decrypting an encrypting with the correct key yields the original message). In this definition, $\M$ denotes the set of possible messages, $\Kpriv$ denotes the set of possible private keys, $\Kpub$ denotes the set of possible public keys, and $C$ denotes the set of possible ciphertexts (a.k.a. encrypted messages). In order to make things more concrete and practical, we will want to replace these abstract sets with specific finite sets. In particular, we will use the integers modulo a prime, $\Z/p\Z$ also denoted by $\Z_p$ or $\F_p$ depending on the author (or context). In general we will use $p$ to denote a prime integer.\\
+As will be discussed in Reading \ref{ciphers}, an asymmetric cipher consists of a public key function, $G: \Kpriv\to\Kpub$, an encryption function, $E: \M\times\Kpub\to\C$, and a decryption function, $D: \C\times\Kpriv\to\M$, such that $D(E(m, G(k)), k) = m$ (that is, decrypting an encryption with the correct key yields the original message). In this definition, $\M$ denotes the set of possible messages, $\Kpriv$ denotes the set of possible private keys, $\Kpub$ denotes the set of possible public keys, and $C$ denotes the set of possible ciphertexts (a.k.a. encrypted messages). In order to make things more concrete and practical, we will want to replace these abstract sets with specific finite sets. In particular, we will use the integers modulo a prime, $\Z/p\Z$ also denoted by $\Z_p$ or $\F_p$ depending on the author (or context). In general we will use $p$ to denote a prime integer.\\
 
 Reading \ref{modular} introduces $\Z/m\Z$ and its operations (without requiring that $m$ be prime, as we will be assuming later). In particular, this reading introduces an efficient algorithm for modular exponentiation. This is important because we will be using the following public key function: Let $g\in\Z_p$ be a fixed non-zero number and define $G: \Z_p^*\to\Z_p$ by
 $$G(x) = g^x\bmod p = g\cdot g\cdot\ldots\cdot g\bmod p\text{ (}x\text{ times)}.$$ We will discuss this further in Reading \ref{DH-crypto}. The problem of trying to compute a private key for a public key with this $G$ is known as the \emph{discrete log problem}.
@@ -78,7 +78,7 @@ Hoffstein, Pipher, Silverman - An Introduction to Mathematical Cryptography - pa
 The most fundamental result when working with modular exponentiation is \emph{Fermat's little theorem}.
 
 \begin{exercise}\label{ex:FLT}
-Find at least one proof of Fermat’s little theorem online that you understand (there are many arguments out there). Be prepared to share!
+Find at least one proof of Fermat’s little theorem online that you find convincing (there are many arguments out there). Be prepared to share! (For those feeling they have little background in math and are daunted, I suggest by starting with either Dirichlet's proof or the ``Necklace'' proof and using your favorite chat bot).
 \end{exercise}
 
 Since we will be working in $\Z_p$ where $p$ is a prime number, we can leverage Fermat's little theorem, and the fact that if $ab\equiv ac\pmod p$ and $a\not\equiv 0\pmod p$, then $b\equiv c\pmod p$, to come up with an alternative approach to computing a modular inverse that uses our code from Exercise \ref{ex:Fast-Exp}.
@@ -96,7 +96,7 @@ Read about symmetric ciphers, encoding messages, and asymmetric ciphers in:\\
 Hoffstein, Pipher, Silverman - An Introduction to Mathematical Cryptography - pages 36-47.
 \end{reading}
 
-In Reading \ref{DH-crypto}, we look concretely at an asymmetric cipher build for the public key algorithm we have been studying (modular exponentiation). This reading ends by introducing abelian groups, which is the general context where the Diffie-Hellman key exchange and the ElGamal cipher can be implemented. You can think of abelian groups as a trait (or interface, if you prefer the language Java) for which these algorithms can be defined that will later allow us to switch out some of the number system we have been using for Elliptic Curves (which Bitcoin uses) later.
+In Reading \ref{DH-crypto}, we look concretely at an asymmetric cipher built from the public key algorithm we have been studying (modular exponentiation). This reading ends by introducing abelian groups, which is the general context where the Diffie-Hellman key exchange and the ElGamal cipher can be implemented. You can think of abelian groups as a trait (or interface, if you prefer the language Java) for which these algorithms can be defined that will later allow us to switch out some of the number system we have been using for Elliptic Curves (which Bitcoin uses) later.
 
 \begin{reading}\label{DH-crypto}
 Read about one-way functions, the discrete log problem for $\Z_p^*$, the Diffie-Hellman key exchange, the ElGamal cipher, and abelian groups in:\\
