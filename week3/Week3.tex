@@ -136,7 +136,60 @@ Read about the definition of Existentially UnForgable under Chosen Message Attac
 Jonathan Katz and Yehuda Lindell - Introduction to Modern Cryptography - pages 463-468.
 \end{reading}
 
-Note that when Kats and Lindell refer to $n$, they are talking about the security parameter, which we have been calling $\lambda$. To have some practice with this definition,
+Note that when Katz and Lindell refer to $n$, they are talking about the security parameter, which we have been calling $\lambda$.\\
+
+Before practicing with this definition, let us restate the book's definition in the attack-game notation we used last week, and then work through two examples --- one proving a scheme secure and one breaking a scheme --- since the exercise below will ask you to do both.\\
+
+A (digital) signature scheme is a triple of PPT algorithms $(G, S, V)$: the key generation algorithm $G(\lambda)$ outputs a key pair $(pk, sk)$; the signing algorithm $S(sk, m)$ outputs a signature $\sigma$ on a message $m$; and the (deterministic) verification algorithm $V(pk, m, \sigma)$ outputs true or false. We require correctness: an honestly produced signature always verifies. The EUF-CMA attack game from the reading can then be written as the game $\game{\algo{EUF\text{-}CMA}}{}$ in Figure \ref{fig:eufcma}. The adversary is given the public key and access to a signing oracle $\oracle{Sign}$ (modeling the ``chosen message attack''), and it wins if it can produce a valid signature on \emph{any} message it did not already ask the oracle to sign (modeling ``existential forgery''). The set $Q$ simply records every message the adversary has queried, so that the final check $m^*\notin Q$ enforces that the forgery is on a fresh message.
+
+\begin{figure}[tbhp]
+  \begin{minipage}[t]{0.5\textwidth}\begin{flushright}
+    \begin{tcolorbox}[width=6cm]
+      \begin{pchstack}[center]
+          \procedure[headlinesep=1pt]{$\game{\algo{EUF\text{-}CMA}}{}$}{%
+            Q \gets \emptyset \\
+            (pk, sk) \gets G(\lambda) \\
+            (m^*, \sigma^*) \gets \adv^{\oracle{Sign}}(pk) \\
+            \pcreturn V(pk, m^*, \sigma^*) \land m^*\notin Q
+          }
+      \end{pchstack}
+    \end{tcolorbox}\end{flushright}\end{minipage}\begin{minipage}[t]{0.5\textwidth}
+    \begin{tcolorbox}[width=5cm]
+      \begin{pchstack}[center]
+          \procedure[headlinesep=1pt]{$\oracle{Sign}(m)$}{%
+            Q \gets Q\cup\{m\} \\
+            \pcreturn S(sk, m)
+          }
+      \end{pchstack}
+    \end{tcolorbox}
+  \end{minipage}
+  \caption{The EUF-CMA attack game for a signature scheme $(G,S,V)$. The adversary $\adv$ has oracle access to $\oracle{Sign}$, which signs any requested message and records it in $Q$; $\adv$ wins by outputting a valid signature on a message it never sent to $\oracle{Sign}$.\label{fig:eufcma}}
+\end{figure}
+
+As usual, we define the advantage of an adversary to be its probability of winning, $$\advantage{EUF\text{-}CMA}{\adv} := \pr{\game{\algo{EUF\text{-}CMA}}{} = \text{true}},$$ and we say that the signature scheme $(G, S, V)$ is secure (i.e., EUF-CMA secure) if $\advantage{EUF\text{-}CMA}{\adv}$ is negligible for every PPT adversary $\adv$. Notice that, unlike the distinguishing games from last week, here there is no ``$-\frac{1}{2}$'': a forger does not get to win half the time by guessing, since blindly outputting a signature on a fresh message succeeds only with negligible probability against a secure scheme.\\
+
+\textbf{Example: proving security by reduction.} Suppose $(G, S, V)$ is an EUF-CMA secure signature scheme with message space $\{0,1\}^\lambda$. Consider the new scheme $(G, S', V')$ with message space $\{0,1\}^{\lambda-1}$ that signs a message after prepending a fixed $0$ bit: $$S'(sk, m) = S(sk, 0\,\|\,m), \qquad V'(pk, m, \sigma) = V(pk, 0\,\|\,m, \sigma),$$ where $\|$ denotes concatenation and key generation is unchanged. Intuitively, one would assume that $(G, S', V')$ is also EUF-CMA secure since adding this zero bit is inconsequential, but there are many situations in cryptography when seemingly inconsequential alterations do break the security of a protocol. As such, we will rigorously prove that this modification is secure if you started with a secure signature scheme, and of course we will prove this by reduction.\\
+
+Following the recipe from Week 2a, the implication we want is ``($(G,S,V)$ is secure) $\Rightarrow$ ($(G,S',V')$ is secure),'' so we prove its contrapositive: we assume a PPT adversary $\adv$ that forges against $(G,S',V')$ with non-negligible advantage, and we build a PPT adversary $\adv'$ that forges against $(G,S,V)$ with non-negligible advantage. Our ``magic box'' is $\adv$; the new wrinkle, compared to the reductions of Week 2a, is that $\adv$ expects to interact with a signing oracle, so $\adv'$ must \emph{simulate that oracle} for $\adv$.\\
+
+The reduction $\adv'$ is given $pk$ and access to the signing oracle $\oracle{Sign}(\cdot) = S(sk, \cdot)$ for the base scheme, and works as follows.
+\begin{enumerate}[(1)]
+\item Run $\adv(pk)$.
+\item Whenever $\adv$ queries its signing oracle on a message $m \in \{0,1\}^{\lambda-1}$, answer it by querying our own oracle on $0\,\|\,m$ and returning the result $S(sk, 0\,\|\,m)$. Since this equals $S'(sk, m)$, from $\adv$'s point of view it is talking to a genuine $(G,S',V')$ signing oracle.
+\item When $\adv$ outputs a forgery $(m^*, \sigma^*)$, output $(0\,\|\,m^*, \sigma^*)$.
+\end{enumerate}
+Now we check that $\adv'$ wins its game exactly when $\adv$ wins. First, whenever $\adv$'s forgery verifies, so does ours, because $V'(pk, m^*, \sigma^*) = V(pk, 0\,\|\,m^*, \sigma^*)$ by definition. Second, we must confirm the forgery is on a fresh message, i.e., that $0\,\|\,m^*$ was never sent to our own oracle. The only messages we ever sent to our oracle were of the form $0\,\|\,m$ for messages $m$ that $\adv$ queried, and $\adv$ winning means $m^*$ differs from all of those $m$; hence $0\,\|\,m^*$ differs from every message we queried, so it is fresh. Therefore $\adv'$ wins precisely when $\adv$ does, giving $\advantage{EUF\text{-}CMA}{\adv'} = \advantage{EUF\text{-}CMA}{\adv}$, which is non-negligible. Finally, $\adv'$ is PPT because it just runs $\adv$ (which is PPT) plus one extra bit of bookkeeping per oracle query. This contradicts the assumed security of $(G,S,V)$, completing the reduction.\\
+
+It is worth naming the moving parts, since every EUF-CMA security proof you write will have them: (i) identify which scheme's security is the assumption and which is the conclusion; (ii) use the forger for the conclusion-scheme as a subroutine; (iii) \emph{simulate its signing oracle} using your own oracle; (iv) \emph{translate its forgery} into a forgery for your scheme; and (v) verify that your translated forgery is both valid \emph{and} on a message you never queried.\\
+
+\textbf{Example: breaking a scheme.} Not every transformation preserves security, and showing that a scheme is \emph{insecure} is usually easier: we only have to exhibit a single PPT adversary with non-negligible advantage. Consider the scheme $(G, S', V')$ on message space $\{0,1\}^\lambda$ (with $\lambda \ge 2$) that signs the message after \emph{deleting its last bit}: writing $m = b_1 b_2\cdots b_\lambda$, $$S'(sk, m) = S(sk, b_1\cdots b_{\lambda-1}), \qquad V'(pk, m, \sigma) = V(pk, b_1\cdots b_{\lambda-1}, \sigma).$$ The problem is that any two messages differing only in their last bit receive the very same signature, which lets us forge after a single query:
+\begin{enumerate}[(1)]
+\item Query the signing oracle on $m = 0^\lambda$ (the all-zeros message), receiving $\sigma = S'(sk, 0^\lambda) = S(sk, 0^{\lambda-1})$.
+\item Output the forgery $(m^*, \sigma^*) = (0^{\lambda-1}1,\ \sigma)$.
+\end{enumerate}
+The message $m^* = 0^{\lambda-1}1$ was never queried (it differs from $0^\lambda$ in the last bit), so it is fresh, yet $V'(pk, m^*, \sigma) = V(pk, 0^{\lambda-1}, \sigma) = \text{true}$ because $\sigma$ is a genuine base-scheme signature on $0^{\lambda-1}$. This adversary wins with probability $1$, so $\advantage{EUF\text{-}CMA}{\adv} = 1$, which is certainly not negligible, and hence $(G, S', V')$ is not EUF-CMA secure. Notice the shape of an attack: choose specific oracle queries, output a specific forgery, and argue both that it verifies and that its message is fresh.\\
+
+Now you are ready to try both directions yourself.
 
 \begin{exercise}
 Let $(G, S, V)$ be a secure signature scheme with the message space $\{0,1\}^\lambda$. Let $\hat{G}$ be a new key generation function that simply calls $G$ twice and returns a pair of secret keys, $(sk_0, sk_1)$, and the corresponding pair of public keys, $(pk_0, pk_1)$. Which of the following signature schemes, $(\hat{G}, \hat{S}, \hat{V})$, are secure? Show an attack or prove security (by reduction).
