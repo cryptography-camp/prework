@@ -25,6 +25,7 @@
   keys,
 ]{cryptocode}
 \doublespacing
+\usepackage{hyperref}
 
 %%% cryptocode tweaks
 % Multi-letter variables, e.g., "ctr"
@@ -88,7 +89,7 @@
 \date{July 9, 2025}
 \maketitle
 
-This week has a little less content volume than last week, so I want to encourage you to also review and become more comfortable with the Week 2 document and its exercises as part of this week's assignment.\\
+This week has a little less content volume than last week, so I want to encourage you to also review and become more comfortable with the Week 2 documents and their exercises as part of this week's assignment.\\
 
 Now that we have a little bit of experience working with security definitions using attack games and probabilities, our goal this week is to make all of the details rigorous to pave the way for the study of the security of Schnorr digital signatures, which we will continue next week.\\
 
@@ -123,7 +124,7 @@ The final page of Reading \ref{negl} has exercises demonstrating properties of n
 \end{exercise}
 
 \begin{exercise}
-Now that we have some more comfort with the formal definition of negligible, double-check, for rigor, your solutions to Exercises 2 and 8 from last week.
+Now that we have some more comfort with the formal definition of negligible, double-check, for rigor, your solutions to Exercises 4 from 2a and 8 from last week (2b).
 \end{exercise}
 
 One last note on our formal model for proving cryptographic security is that the adversary is not allowed to be an arbitrary program, but rather we will require it to be a Probabalistic Polynomial Time (PPT) program. In addition to allowing our adversaries to have access to randomness (hence, probabalistic) this also means that the number of steps in any execution of $\adv$ must be bounded by some polynomial, $p(\lambda)$. This assumption is not only sensical and practical, but it is also necessary for our definition of negligible to work because it ensures that our adversary cannot turn a negligible success probability into a non-negligible one by brute force (for example, the adversary may not sample a non-negligible proportion of all possible private keys).\\
@@ -152,6 +153,8 @@ Now we are almost ready to see the Fiat-Shamir Transform (next week), which turn
 Read about the Random Oracle Model in:\\
 Jonathan Katz and Yehuda Lindell - Introduction to Modern Cryptography - pages 187-191.
 \end{reading}
+
+Pieter recorded the following video further discussing the ROM: \url{https://www.youtube.com/watch?v=ITxL4bOkOy0}\\
 
 One strange but important feature of the ROM discussed in the section ``Definitions and Proofs in the ROM'' is that during a reduction, adversaries $\adv$ must ``report'' all of their oracle queries to the adversary $\adv'$ that is using $\adv$ as a subroutine, and additionally $\adv'$ may adaptively control the response that $\adv$ gets to these queries so long as $\adv$ cannot distinguish what they receive from a regular random oracle. This kind of reporting feature is also key to other models we will discuss in the future.\\
 
