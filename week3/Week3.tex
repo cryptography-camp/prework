@@ -228,11 +228,46 @@ Now we check that $\adv'$ wins its game exactly when $\adv$ wins. First, wheneve
 
 It is worth naming the moving parts, since every EUF-CMA security proof you write will have them: (i) identify which scheme's security is the assumption and which is the conclusion; (ii) use the forger for the conclusion-scheme as a subroutine; (iii) \emph{simulate its signing oracle} using your own oracle; (iv) \emph{translate its forgery} into a forgery for your scheme; and (v) verify that your translated forgery is both valid \emph{and} on a message you never queried.\\
 
-\textbf{Example: breaking a scheme.} Not every transformation preserves security, and showing that a scheme is \emph{insecure} is usually easier: we only have to exhibit a single PPT adversary with non-negligible advantage. Consider the scheme $(G, S', V')$ on message space $\{0,1\}^\lambda$ (with $\lambda \ge 2$) that signs the message after \emph{deleting its last bit}: writing $m = b_1 b_2\cdots b_\lambda$, $$S'(sk, m) = S(sk, b_1\cdots b_{\lambda-1}), \qquad V'(pk, m, \sigma) = V(pk, b_1\cdots b_{\lambda-1}, \sigma).$$ The problem is that any two messages differing only in their last bit receive the very same signature, which lets us forge after a single query:
+\textbf{Example: breaking a scheme.} Not every transformation preserves security, and showing that a scheme is \emph{insecure} is usually easier: we only have to exhibit a single PPT adversary with non-negligible advantage. Consider the scheme $(G, S', V')$ on message space $\{0,1\}^\lambda$ (with $\lambda \ge 2$) that signs the message after \emph{deleting its last bit}: writing $m = b_1 b_2\cdots b_\lambda$, $$S'(sk, m) = S(sk, b_1\cdots b_{\lambda-1}), \qquad V'(pk, m, \sigma) = V(pk, b_1\cdots b_{\lambda-1}, \sigma).$$ The problem is that any two messages differing only in their last bit receive the very same signature, which lets us forge after a single query (see Figure \ref{fig:attack}):
 \begin{enumerate}[(1)]
 \item Query the signing oracle on $m = 0^\lambda$ (the all-zeros message), receiving $\sigma = S'(sk, 0^\lambda) = S(sk, 0^{\lambda-1})$.
 \item Output the forgery $(m^*, \sigma^*) = (0^{\lambda-1}1,\ \sigma)$.
 \end{enumerate}
+
+\begin{figure}[tbhp]
+\centering
+\begin{tikzpicture}[font=\small, >=latex,
+   wire/.style={->, thick}]
+
+% ---- Challenger (modified, insecure scheme) ----
+\draw[thick, rounded corners, fill=black!3] (0,-0.3) rectangle (5.5,4.5);
+\node[align=center] at (2.75,2.1)
+  {$\game{\algo{EUF\text{-}CMA}}{}$ challenger\\ for $(G,S',V')$\\[6pt] \scriptsize(knows $sk$; signs and\\ \scriptsize verifies after dropping\\ \scriptsize the last bit of $m$)};
+
+% ---- Attacker ----
+\draw[thick, rounded corners, fill=blue!12] (11,-0.3) rectangle (14.2,4.5);
+\node[align=center] at (12.6,2.1) {attacker $\adv$\\[6pt] \scriptsize queries $0^\lambda$,\\ \scriptsize then forges\\ \scriptsize on $0^{\lambda-1}1$};
+
+% ---- pk wire (challenger -> attacker) ----
+\draw[wire] (5.5,3.5) -- (11,3.5);
+\node[font=\scriptsize, above] at (8.25,3.5) {$pk$};
+
+% ---- query (attacker -> challenger) ----
+\draw[wire] (11,2.5) -- (5.5,2.5);
+\node[font=\scriptsize, above] at (8.25,2.5) {$m = 0^\lambda$};
+
+% ---- response (challenger -> attacker) ----
+\draw[wire] (5.5,1.5) -- (11,1.5);
+\node[font=\scriptsize, above] at (8.25,1.5) {$\sigma = S(sk,\,0^{\lambda-1})$};
+
+% ---- forgery (attacker -> challenger) ----
+\draw[wire] (11,0.5) -- (5.5,0.5);
+\node[font=\scriptsize, above] at (8.25,0.5) {$(m^*,\sigma^*) = (0^{\lambda-1}1,\ \sigma)$};
+
+\end{tikzpicture}
+\caption{The forgery attack of the previous example. Unlike Figure \ref{fig:reduction}, this is not a reduction: the attacker $\adv$ is a single program playing the EUF-CMA game directly against the modified scheme $(G,S',V')$, whose signing oracle and verifier both drop the last bit of a message.\label{fig:attack}}
+\end{figure}
+
 The message $m^* = 0^{\lambda-1}1$ was never queried (it differs from $0^\lambda$ in the last bit), so it is fresh, yet $V'(pk, m^*, \sigma) = V(pk, 0^{\lambda-1}, \sigma) = \text{true}$ because $\sigma$ is a genuine base-scheme signature on $0^{\lambda-1}$. This adversary wins with probability $1$, so $\advantage{EUF\text{-}CMA}{\adv} = 1$, which is certainly not negligible, and hence $(G, S', V')$ is not EUF-CMA secure. Notice the shape of an attack: choose specific oracle queries, output a specific forgery, and argue both that it verifies and that its message is fresh.\\
 
 Now you are ready to try both directions yourself.
